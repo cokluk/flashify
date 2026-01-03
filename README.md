@@ -9,6 +9,13 @@
 - ✅ **Windows** (Current)
 - ⏳ **macOS & Linux** (Coming soon in future updates)
 
+## Screenshots
+
+| | |
+|:-------------------------:|:-------------------------:|
+| ![Screenshot 1](project_images/1.png) | ![Screenshot 2](project_images/2.png) |
+| ![Screenshot 3](project_images/3.png) | ![Screenshot 4](project_images/4.png) |
+
 ## Table of Contents
 
 - [Features](#features)
