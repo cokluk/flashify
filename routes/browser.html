@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Flashy Browser</title>
+  <link rel="icon" href="images/icon.png">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .app-drag {
+      -webkit-app-region: drag;
+    }
+    .app-no-drag {
+      -webkit-app-region: no-drag;
+    }
+    .webview-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    webview {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    webview.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-gray-100 overflow-hidden border border-gray-600">
+ 
+  <div class="bg-gray-900 text-white pt-2 px-2 flex flex-col shadow-md z-10">
+   
+    <div class="flex items-center justify-between">
+      
+        <div class="flex items-center space-x-1 overflow-x-auto no-scrollbar flex-1 app-drag pr-2" id="tabs-container">
+          
+        </div>
+
+      
+        <div class="flex items-center space-x-1 app-no-drag mb-1">
+            <button id="btn-min" class="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition">
+                <span class="material-icons text-sm">remove</span>
+            </button>
+            <button id="btn-max" class="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition">
+                <span class="material-icons text-sm">check_box_outline_blank</span>
+            </button>
+            <button id="btn-close" class="p-1 hover:bg-red-600 rounded text-gray-400 hover:text-white transition">
+                <span class="material-icons text-sm">close</span>
+            </button>
+        </div>
+    </div>
+ 
+    <div class="flex items-center bg-gray-800 p-2 space-x-2 app-no-drag">
+      <button id="btn-back" class="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition">
+        <span class="material-icons text-sm">arrow_back</span>
+      </button>
+      <button id="btn-forward" class="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition">
+        <span class="material-icons text-sm">arrow_forward</span>
+      </button>
+      <button id="btn-refresh" class="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition">
+        <span class="material-icons text-sm">refresh</span>
+      </button>
+      
+      <input type="text" id="url-input" class="flex-1 bg-gray-700 text-white px-3 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Search or enter address">
+      
+      <button id="btn-go" class="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition">
+        <span class="material-icons text-sm">arrow_forward_ios</span>
+      </button>
+      
+       <button id="btn-new-tab" class="ml-2 p-1 bg-blue-600 hover:bg-blue-500 rounded-full text-white shadow-lg transition transform hover:scale-105">
+        <span class="material-icons text-sm">add</span>
+      </button>
+ 
+      <div class="relative ml-1">
+        <button id="btn-menu" class="p-1 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition">
+          <span class="material-icons text-sm">more_vert</span>
+        </button>
+        <div id="app-menu" class="absolute right-0 top-full mt-1 w-48 bg-white rounded shadow-lg py-1 z-50 hidden border border-gray-200">
+          <button id="menu-history" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Geçmiş</button>
+          <button id="menu-settings" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ayarlar</button>
+          <div class="border-t border-gray-200 my-1"></div>
+          <button id="menu-devtools" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Geliştirici Araçları</button>
+          <button id="menu-print" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Yazdır</button>
+          <div class="border-t border-gray-200 my-1"></div>
+          <button id="menu-zoom-in" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Yakınlaştır (+)</button>
+          <button id="menu-zoom-out" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Uzaklaştır (-)</button>
+          <button id="menu-reset-zoom" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sıfırla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <div id="webviews-container" class="webview-container bg-white relative">
+ 
+  </div>
+ 
+  <div id="custom-context-menu" class="absolute bg-white rounded shadow-lg py-1 z-50 hidden border border-gray-200 w-40">
+    <button id="ctx-copy" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Kopyala</button>
+    <button id="ctx-paste" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Yapıştır</button>
+    <div class="border-t border-gray-200 my-1"></div>
+    <button id="ctx-reload" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Yenile</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

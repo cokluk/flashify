@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Geçmiş</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex flex-col">
+    <div class="bg-white shadow-md p-4 flex items-center justify-between sticky top-0 z-10">
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+            <span class="material-icons mr-2">history</span>
+            <span id="page-title">History</span>
+        </h1>
+        <div class="flex space-x-2">
+            <input type="text" id="search-input" class="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Geçmişte ara...">
+            <button id="clear-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded transition">
+                Clean History
+            </button>
+        </div>
+    </div>
+
+    <div id="history-list" class="flex-1 overflow-y-auto p-4 space-y-2">
+        <div class="text-center text-gray-500 mt-10">Loading...</div>
+    </div>
+
+    <script src="history.js"></script>
+    <script>
+        const { ipcRenderer } = require('electron');
+        const fs = require('fs');
+        const path = require('path');
+
+        const list = document.getElementById('history-list');
+        const clearBtn = document.getElementById('clear-btn');
+        const searchInput = document.getElementById('search-input');
+        const pageTitle = document.getElementById('page-title');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLang = urlParams.get('lang') || 'tr';
+
+        const i18n = {
+            en: { title: 'History', clear: 'Clear History', search: 'Search history...', empty: 'No history found.', confirm: 'Are you sure?' },
+            tr: { title: 'Geçmiş', clear: 'Geçmişi Temizle', search: 'Geçmişte ara...', empty: 'Geçmiş bulunamadı.', confirm: 'Emin misiniz?' },
+            ru: { title: 'История', clear: 'Очистить историю', search: 'Поиск в истории...', empty: 'История пуста.', confirm: 'Вы уверены?' }
+        };
+
+        const t = i18n[currentLang] || i18n.en;
+
+        document.title = t.title;
+        pageTitle.textContent = t.title;
+        clearBtn.textContent = t.clear;
+        searchInput.placeholder = t.search;
+
+        let allHistory = [];
+        const historyPath = path.join(__dirname, '../data/history.json');
+
+        ipcRenderer.on('history-data', (event, history) => {
+            allHistory = history || [];
+            renderHistory(allHistory);
+        });
+ 
+        function loadHistory() {
+           
+            try {
+                if (fs.existsSync(historyPath)) {
+                    const fileData = fs.readFileSync(historyPath, 'utf-8');
+                    const parsed = JSON.parse(fileData);
+                    if (Array.isArray(parsed)) {
+                        allHistory = parsed;
+                        renderHistory(allHistory);
+                    }
+                }
+            } catch (err) {
+                console.error('History file read error:', err);
+            }
+ 
+            ipcRenderer.send('get-history');
+        }
+
+        loadHistory();
+
+        function renderHistory(items) {
+            list.innerHTML = '';
+            if (items.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-500 mt-10">${t.empty}</div>`;
+                return;
+            }
+ 
+            [...items].reverse().forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'bg-white p-3 rounded shadow-sm hover:shadow-md transition flex items-center justify-between border border-gray-200';
+                el.innerHTML = `
+                    <div class="flex-1 min-w-0 cursor-pointer history-item">
+                        <div class="font-medium text-gray-800 truncate">${item.title || item.url}</div>
+                        <div class="text-xs text-gray-500 truncate">${item.url}</div>
+                    </div>
+                    <div class="text-xs text-gray-400 ml-4 whitespace-nowrap">
+                        ${item.date}
+                    </div>
+                `;
+        
+                el.querySelector('.history-item').addEventListener('click', () => {
+                    ipcRenderer.send('load-url', item.url);
+                });
+
+                list.appendChild(el);
+            });
+        }
+
+        clearBtn.addEventListener('click', () => {
+            if(confirm(t.confirm)) {
+                ipcRenderer.send('clear-history');
+               
+                try {
+                    fs.writeFileSync(historyPath, '[]');
+                } catch(e) { console.error(e); }
+
+                allHistory = [];
+                renderHistory([]);
+            }
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allHistory.filter(h => 
+                (h.title && h.title.toLowerCase().includes(term)) || 
+                (h.url && h.url.toLowerCase().includes(term))
+            );
+            renderHistory(filtered);
+        });
+    </script>
+</body>
+</html>
