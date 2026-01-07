@@ -4,7 +4,7 @@
 
 **Flashy** is a tool designed to enable the use of an embedded Flash Player within a Chromium-based infrastructure. It allows you to run legacy Flash content seamlessly using modern browser technology.
 
-[![Available on Microsoft Store](project_images/store.png)](https://apps.microsoft.com/detail/9NH30KB3WCPC?hl=neutral&gl=US&ocid=pdpshare)
+[![Available on Microsoft Store](project_images/msstore.png)](https://apps.microsoft.com/detail/9NH30KB3WCPC?hl=neutral&gl=US&ocid=pdpshare)
 
 ## Supported Platforms
 
